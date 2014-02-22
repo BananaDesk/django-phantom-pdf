@@ -1,8 +1,7 @@
-==================
-DJANGO PHANTOM JS
+Django Phantom PDF
 ==================
 
-A simpla django package for rendering a django template to a PDF.
+A simpla django package that takes tha pain out of rendering PDFs in django.
 
 Quick start
 -----------
@@ -12,7 +11,6 @@ Quick start
 ### On Mac OSX:
 
     brew install node npm
-
     npm install -g phantomjs
 
 ### On Ubuntu:
@@ -22,20 +20,20 @@ Quick start
 
 2. Install django-phantom-pdf:
 
-    pip install django-phantom-pdf
+		pip install django-phantom-pdf
 
-3. That's it, now you can start using in your django views like so:
+3. That's it, you can now start using it in your django views like so and rendering PDFs!
 
-    from phantom_pdf import render_to_pdf
-    from django.http import HttpResponse
+	    from phantom_pdf import render_to_pdf
+    	from django.http import HttpResponse
 
-    def home(request):
-        # If 'print=pdf' in GET params, then render the PDF!
-        if request.GET.get("print", None) == "pdf":
-            basename = 'output'  # `.pdf` will be appended to this string.
-            return render_to_pdf(request, basename)
-        else:
-            return HttpResponse("Hello World!")
+	    def home(request):
+    	    # If 'print=pdf' in GET params, then render the PDF!
+        	if request.GET.get("print", None) == "pdf":
+            	basename = 'output'  # `.pdf` will be appended to this string.
+	            return render_to_pdf(request, basename)
+    	    else:
+        	    return HttpResponse("Hello World!")
 
 Advanced Use
 ------------
