@@ -7,11 +7,12 @@ README = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read()
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
-    name='django-phanom-pdf',
+    name='django-phantom-pdf',
     version='0.1',
-    packages=['phantom_pdf'],
+    packages=['phantom_pdf', 'phantom_pdf_bin'],
+    package_data={'phantom_pdf_bin': ['*.js']},
     include_package_data=True,
-    license='BSD License',  # example license
+    license='BSD License',
     description='A simple app that let you create pdf files.',
     long_description=README,
     url='http://www.bananadesk.com/opensource/',
@@ -21,7 +22,7 @@ setup(
             'Environment :: Web Environment',
             'Framework :: Django',
             'Intended Audience :: Developers',
-            'License :: OSI Approved :: BSD License', # example license
+            'License :: OSI Approved :: BSD License',
             'Operating System :: OS Independent',
             'Programming Language :: Python',
             'Programming Language :: Python :: 2.7',
