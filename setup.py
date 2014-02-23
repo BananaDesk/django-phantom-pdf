@@ -15,9 +15,10 @@ setup(
     license='BSD License',
     description='A simple app that let you create pdf files.',
     long_description=README,
-    url='http://www.bananadesk.com/opensource/',
+    url='https://github.com/BananaDesk/django-phantom-pdf',
     author='Juan Carizza, Tim Zenderman, Emiliano Dalla Verde Marcozzi',
     author_email='juan.carizza@gmail.com, tim@bananadesk.com, edvm@fedoraproject.org',
+    download_url='https://github.com/BananaDesk/django-phantom-pdf/archive/v0.1.tar.gz',
     classifiers=[
             'Environment :: Web Environment',
             'Framework :: Django',
