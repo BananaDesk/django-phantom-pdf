@@ -124,13 +124,14 @@ class RequestToPDF(object):
         domain = urlparse.urlsplit(
             request.build_absolute_uri()
         ).netloc.split(':')[0]
-        Popen([
+        phandle = Popen([
             self.PHANTOMJS_BIN,
             self.PHANTOMJS_GENERATE_PDF,
             url,
             file_src,
             cookie_file,
-            domain], stdout=PIPE, stderr=STDOUT)
+            domain], close_fds=True, stdout=PIPE, stderr=STDOUT)
+        phandle.communicate()
 
         # Once the pdf is created, remove the cookie file.
         os.remove(cookie_file)
