@@ -95,16 +95,14 @@ class RequestToPDF(object):
 
     def _return_response(self, file_src, basename):
         """Read the generated pdf and return it in a django HttpResponse."""
-        try:
-            # Open the file created by PhantomJS
-            return_file = open(file_src, 'r')
-        except IOError:
-            exc_msg = "The PDF was not created. Enable debug at RequestToPDF instance."
-            raise Exception(exc_msg)
+        # Open the file created by PhantomJS
+        return_file = None
+        with open(file_src, 'rb') as f:
+            return_file = f.readlines()
 
         response = HttpResponse(
             return_file,
-            mimetype='application/force-download'
+            content_type='application/pdf'
         )
         content_disposition = 'attachment; filename=%s.pdf' % (basename)
         response['Content-Disposition'] = content_disposition
