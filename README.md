@@ -32,6 +32,8 @@ Quick start
         	if request.GET.get("print", None) == "pdf":
             	basename = 'output'  # `.pdf` will be appended to this string.
 	            return render_to_pdf(request, basename)
+                # If you want to change default format and orientation for this view
+                # return render_to_pdf(request, basename, format='A3', orientation='portrait')
     	    else:
         	    return HttpResponse("Hello World!")
 
@@ -47,4 +49,5 @@ more fine grained control.
     PHANTOMJS_BIN = Path to PhantomsJS binary.
     PHANTOMJS_GENERATE_PDF = Path to generate_pdf.js file.
     keep_pdf_files = Option to not delete the PDF file after rendering it.
-
+    PHANTOMJS_FORMAT = Page size to use
+    PHANTOMJS_ORIENTATION = How the page will be positioned when printing.

@@ -1,22 +1,25 @@
 # -*- coding: utf-8 -*-
 
-import os
-import uuid
-import urlparse
-import phantom_pdf_bin
 from subprocess import Popen, STDOUT, PIPE
+import os
+import phantom_pdf_bin
+import urlparse
+import uuid
 
 from django.conf import settings
 from django.http import HttpResponse
 
 
 # Path to generate_pdf.js file. Its distributed with this django product.
-GENERATE_PDF_JS = os.path.join(os.path.dirname(phantom_pdf_bin.__file__), 'generate_pdf.js')
+GENERATE_PDF_JS = os.path.join(os.path.dirname(phantom_pdf_bin.__file__),
+                               'generate_pdf.js')
 PHANTOM_ROOT_DIR = '/tmp/phantom_pdf'
 DEFAULT_SETTINGS = dict(
     PHANTOMJS_COOKIE_DIR=os.path.join(PHANTOM_ROOT_DIR, 'cookies'),
     PHANTOMJS_PDF_DIR=os.path.join(PHANTOM_ROOT_DIR, 'pdfs'),
-    PHANTOMJS_BIN='phantomjs'
+    PHANTOMJS_BIN='phantomjs',
+    PHANTOMJS_FORMAT='A4',
+    PHANTOMJS_ORIENTATION='landscape'
 )
 
 
@@ -28,8 +31,7 @@ class RequestToPDF(object):
                  PHANTOMJS_PDF_DIR=None,
                  PHANTOMJS_BIN=None,
                  PHANTOMJS_GENERATE_PDF=GENERATE_PDF_JS,
-                 keep_pdf_files=False,
-                 ):
+                 keep_pdf_files=False):
         """Arguments:
             PHANTOMJS_COOKIE_DIR = Directory where the temp cookies will be saved.
             PHANTOMJS_PDF_DIR = Directory where you want to the PDF to be saved temporarily.
@@ -42,6 +44,7 @@ class RequestToPDF(object):
         self.PHANTOMJS_PDF_DIR = PHANTOMJS_PDF_DIR
         self.PHANTOMJS_BIN = PHANTOMJS_BIN
         self.PHANTOMJS_GENERATE_PDF = PHANTOMJS_GENERATE_PDF
+
         for attr in [
                 'PHANTOMJS_COOKIE_DIR',
                 'PHANTOMJS_PDF_DIR',
@@ -112,7 +115,9 @@ class RequestToPDF(object):
 
         return response
 
-    def request_to_pdf(self, request, basename):
+    def request_to_pdf(self, request, basename,
+                       format=DEFAULT_SETTINGS['PHANTOMJS_FORMAT'],
+                       orientation=DEFAULT_SETTINGS['PHANTOMJS_ORIENTATION']):
         """Receive request, basename and return a PDF in an HttpResponse."""
 
         file_src = self._set_source_file_name()
@@ -128,7 +133,10 @@ class RequestToPDF(object):
             url,
             file_src,
             cookie_file,
-            domain], close_fds=True, stdout=PIPE, stderr=STDOUT)
+            domain,
+            format,
+            orientation
+        ], close_fds=True, stdout=PIPE, stderr=STDOUT)
         phandle.communicate()
 
         # Once the pdf is created, remove the cookie file.
@@ -136,13 +144,17 @@ class RequestToPDF(object):
         return self._return_response(file_src, basename)
 
 
-def render_to_pdf(request, basename):
+def render_to_pdf(request, basename,
+                  format=DEFAULT_SETTINGS['PHANTOMJS_FORMAT'],
+                  orientation=DEFAULT_SETTINGS['PHANTOMJS_ORIENTATION']):
     """Helper function for rendering a request to pdf.
     Arguments:
         request = django request.
         basename = string to use for your pdf's filename.
+        format = the page size to be applied; default if not given.
+        orientation = the page orientation to use; default if not given.
     """
     request2pdf = RequestToPDF()
-    response = request2pdf.request_to_pdf(request, basename)
+    response = request2pdf.request_to_pdf(request, basename, format=format,
+                                          orientation=orientation)
     return response
-
