@@ -17,6 +17,8 @@ address = system.args[1];
 output = system.args[2];
 cookie_file = system.args[3];
 domain = system.args[4];
+format = system.args[5]
+orientation = system.args[6];
 
 info = fs.read(cookie_file).split(' ');
 csrftoken = info[0];
@@ -32,8 +34,8 @@ phantom.addCookie({'domain':domain, 'name':'sessionid',
 
 // Set the page size and orientation
 page.paperSize = {
-    format: 'A4',
-    orientation: 'landscape'};
+    format: format,
+    orientation: orientation};
 
 // Now we have everything settled, let's render the page
 page.open(address, function (status) {
