@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import logging
 from subprocess import Popen, STDOUT, PIPE
 import os
 import phantom_pdf_bin
@@ -10,16 +11,21 @@ from django.conf import settings
 from django.http import HttpResponse
 
 
+logger = logging.getLogger(__name__)
+
+
 # Path to generate_pdf.js file. Its distributed with this django product.
 GENERATE_PDF_JS = os.path.join(os.path.dirname(phantom_pdf_bin.__file__),
                                'generate_pdf.js')
 PHANTOM_ROOT_DIR = '/tmp/phantom_pdf'
 DEFAULT_SETTINGS = dict(
     PHANTOMJS_COOKIE_DIR=os.path.join(PHANTOM_ROOT_DIR, 'cookies'),
+    PHANTOMJS_GENERATE_PDF=GENERATE_PDF_JS,
     PHANTOMJS_PDF_DIR=os.path.join(PHANTOM_ROOT_DIR, 'pdfs'),
     PHANTOMJS_BIN='phantomjs',
     PHANTOMJS_FORMAT='A4',
-    PHANTOMJS_ORIENTATION='landscape'
+    PHANTOMJS_ORIENTATION='landscape',
+    KEEP_PDF_FILES=False,
 )
 
 
@@ -30,31 +36,34 @@ class RequestToPDF(object):
                  PHANTOMJS_COOKIE_DIR=None,
                  PHANTOMJS_PDF_DIR=None,
                  PHANTOMJS_BIN=None,
-                 PHANTOMJS_GENERATE_PDF=GENERATE_PDF_JS,
-                 keep_pdf_files=False):
+                 PHANTOMJS_GENERATE_PDF=None,
+                 KEEP_PDF_FILES=None):
         """Arguments:
             PHANTOMJS_COOKIE_DIR = Directory where the temp cookies will be saved.
             PHANTOMJS_PDF_DIR = Directory where you want to the PDF to be saved temporarily.
             PHANTOMJS_BIN = Path to PhantomsJS binary.
             PHANTOMJS_GENERATE_PDF = Path to generate_pdf.js file.
-            keep_pdf_files = Option to not delete the PDF file after rendering it.
+            KEEP_PDF_FILES = Option to not delete the PDF file after rendering it.
         """
-        self.keep_pdf_files = keep_pdf_files
         self.PHANTOMJS_COOKIE_DIR = PHANTOMJS_COOKIE_DIR
         self.PHANTOMJS_PDF_DIR = PHANTOMJS_PDF_DIR
         self.PHANTOMJS_BIN = PHANTOMJS_BIN
         self.PHANTOMJS_GENERATE_PDF = PHANTOMJS_GENERATE_PDF
+        self.KEEP_PDF_FILES = KEEP_PDF_FILES
 
         for attr in [
                 'PHANTOMJS_COOKIE_DIR',
                 'PHANTOMJS_PDF_DIR',
                 'PHANTOMJS_BIN',
-                'PHANTOMJS_GENERATE_PDF']:
-            if not getattr(self, attr, None):
+                'PHANTOMJS_GENERATE_PDF',
+                'KEEP_PDF_FILES']:
+
+            if getattr(self, attr, None) is None:
                 value = getattr(settings, attr, None)
-                if not value:
+                if value is None:
                     value = DEFAULT_SETTINGS[attr]
                 setattr(self, attr, value)
+
         assert os.path.isfile(self.PHANTOMJS_BIN), \
             "%s doesnt exist, read the docs for more info." % self.PHANTOMJS_BIN
         for dir_ in [self.PHANTOMJS_COOKIE_DIR, self.PHANTOMJS_PDF_DIR]:
@@ -88,13 +97,9 @@ class RequestToPDF(object):
             fh.write(cookie)
         return cookie_file
 
-    def _set_source_file_name(self):
+    def _set_source_file_name(self, basename=str(uuid.uuid1())):
         """Return the original source filename of the pdf."""
-        return ''.join((
-            os.path.join(
-                self.PHANTOMJS_PDF_DIR, str(uuid.uuid1())
-            ), '.pdf'
-        ))
+        return ''.join((os.path.join(self.PHANTOMJS_PDF_DIR, basename), '.pdf'))
 
     def _return_response(self, file_src, basename):
         """Read the generated pdf and return it in a django HttpResponse."""
@@ -110,7 +115,7 @@ class RequestToPDF(object):
         content_disposition = 'attachment; filename=%s.pdf' % (basename)
         response['Content-Disposition'] = content_disposition
 
-        if not self.keep_pdf_files:  # remove generated pdf files
+        if not self.KEEP_PDF_FILES:  # remove generated pdf files
             os.remove(file_src)
 
         return response
@@ -120,13 +125,20 @@ class RequestToPDF(object):
                        orientation=DEFAULT_SETTINGS['PHANTOMJS_ORIENTATION']):
         """Receive request, basename and return a PDF in an HttpResponse."""
 
-        file_src = self._set_source_file_name()
+        file_src = self._set_source_file_name(basename=basename)
+        try:
+            os.remove(file_src)
+            logger.info("Removed already existing file: %s", file_src)
+        except OSError:
+            pass
+
         cookie_file = self._save_cookie_data(request)
         url = self._build_url(request)
 
         domain = urlparse.urlsplit(
             request.build_absolute_uri()
         ).netloc.split(':')[0]
+
         phandle = Popen([
             self.PHANTOMJS_BIN,
             self.PHANTOMJS_GENERATE_PDF,
