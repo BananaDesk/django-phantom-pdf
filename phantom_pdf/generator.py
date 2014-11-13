@@ -142,21 +142,24 @@ class RequestToPDF(object):
         # Some servers have SSLv3 disabled, leave
         # phantomjs connect with others than SSLv3
         ssl_protocol = "--ssl-protocol=ANY"
-        phandle = Popen([
-            self.PHANTOMJS_BIN,
-            ssl_protocol,
-            self.PHANTOMJS_GENERATE_PDF,
-            url,
-            file_src,
-            cookie_file,
-            domain,
-            format,
-            orientation
-        ], close_fds=True, stdout=PIPE, stderr=STDOUT)
-        phandle.communicate()
+        try:
+            phandle = Popen([
+                self.PHANTOMJS_BIN,
+                ssl_protocol,
+                self.PHANTOMJS_GENERATE_PDF,
+                url,
+                file_src,
+                cookie_file,
+                domain,
+                format,
+                orientation
+            ], close_fds=True, stdout=PIPE, stderr=STDOUT)
+            phandle.communicate()
 
-        # Once the pdf is created, remove the cookie file.
-        os.remove(cookie_file)
+        finally:
+            # Make sure we remove the cookie file.
+            os.remove(cookie_file)
+
         return self._return_response(file_src, basename)
 
 
