@@ -1,7 +1,7 @@
 Django Phantom PDF
 ==================
 
-A simpla django package that takes tha pain out of rendering PDFs in django.
+A simple django app that takes the pain out of rendering PDFs from django views.
 
 Quick start
 -----------
@@ -17,6 +17,7 @@ Quick start
 
     apt-get install node npm
     sudo npm install -g phantomjs
+
 
 2. Install django-phantom-pdf:
 
@@ -41,7 +42,7 @@ Advanced Use
 ------------
 
 For more advanced use and control, you can set the following variables in your setting.
-They are already set to sane defaults, so it's not necessary unless you are looking for 
+They are already set to sane defaults, so it's not necessary unless you are looking for
 more fine grained control.
 
     PHANTOMJS_COOKIE_DIR = Directory where the temp cookies will be saved.
