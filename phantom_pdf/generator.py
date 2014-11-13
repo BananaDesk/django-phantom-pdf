@@ -139,8 +139,12 @@ class RequestToPDF(object):
             request.build_absolute_uri()
         ).netloc.split(':')[0]
 
+        # Some servers have SSLv3 disabled, leave
+        # phantomjs connect with others than SSLv3
+        ssl_protocol = "--ssl-protocol=ANY"
         phandle = Popen([
             self.PHANTOMJS_BIN,
+            ssl_protocol,
             self.PHANTOMJS_GENERATE_PDF,
             url,
             file_src,
