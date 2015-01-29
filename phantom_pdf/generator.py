@@ -122,8 +122,10 @@ class RequestToPDF(object):
 
     def request_to_pdf(self, request, basename,
                        format=DEFAULT_SETTINGS['PHANTOMJS_FORMAT'],
-                       orientation=DEFAULT_SETTINGS['PHANTOMJS_ORIENTATION']):
-        """Receive request, basename and return a PDF in an HttpResponse."""
+                       orientation=DEFAULT_SETTINGS['PHANTOMJS_ORIENTATION'],
+                       make_response=True):
+        """Receive request, basename and return a PDF in an HttpResponse.
+            If `make_response` is True return an HttpResponse otherwise file_src. """
 
         file_src = self._set_source_file_name(basename=basename)
         try:
@@ -160,20 +162,22 @@ class RequestToPDF(object):
             # Make sure we remove the cookie file.
             os.remove(cookie_file)
 
-        return self._return_response(file_src, basename)
+        return self._return_response(file_src, basename) if make_response else file_src
 
 
 def render_to_pdf(request, basename,
                   format=DEFAULT_SETTINGS['PHANTOMJS_FORMAT'],
-                  orientation=DEFAULT_SETTINGS['PHANTOMJS_ORIENTATION']):
+                  orientation=DEFAULT_SETTINGS['PHANTOMJS_ORIENTATION'],
+                  make_response=True):
     """Helper function for rendering a request to pdf.
     Arguments:
         request = django request.
         basename = string to use for your pdf's filename.
         format = the page size to be applied; default if not given.
         orientation = the page orientation to use; default if not given.
+        make_response = create or not an HttpResponse
     """
     request2pdf = RequestToPDF()
     response = request2pdf.request_to_pdf(request, basename, format=format,
-                                          orientation=orientation)
+                                          orientation=orientation, make_response=make_response)
     return response
