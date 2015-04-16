@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import json
 import logging
 from subprocess import Popen, STDOUT, PIPE
 import os
@@ -14,7 +14,7 @@ from django.http import HttpResponse
 logger = logging.getLogger(__name__)
 
 
-# Path to generate_pdf.js file. Its distributed with this django product.
+# Path to generate_pdf.js file. Its distributed with this django app.
 GENERATE_PDF_JS = os.path.join(os.path.dirname(phantom_pdf_bin.__file__),
                                'generate_pdf.js')
 PHANTOM_ROOT_DIR = '/tmp/phantom_pdf'
@@ -25,6 +25,7 @@ DEFAULT_SETTINGS = dict(
     PHANTOMJS_BIN='phantomjs',
     PHANTOMJS_FORMAT='A4',
     PHANTOMJS_ORIENTATION='landscape',
+    PHANTOMJS_MARGIN=0,
     KEEP_PDF_FILES=False,
 )
 
@@ -44,6 +45,9 @@ class RequestToPDF(object):
             PHANTOMJS_BIN = Path to PhantomsJS binary.
             PHANTOMJS_GENERATE_PDF = Path to generate_pdf.js file.
             KEEP_PDF_FILES = Option to not delete the PDF file after rendering it.
+            PHANTOMJS_FORMAT = Page size to use.
+            PHANTOMJS_ORIENTATION = How the page will be positioned when printing.
+            PHANTOMJS_MARGIN = The margins of the PDF.
         """
         self.PHANTOMJS_COOKIE_DIR = PHANTOMJS_COOKIE_DIR
         self.PHANTOMJS_PDF_DIR = PHANTOMJS_PDF_DIR
@@ -56,8 +60,10 @@ class RequestToPDF(object):
                 'PHANTOMJS_PDF_DIR',
                 'PHANTOMJS_BIN',
                 'PHANTOMJS_GENERATE_PDF',
-                'KEEP_PDF_FILES']:
-
+                'KEEP_PDF_FILES',
+                'PHANTOMJS_FORMAT',
+                'PHANTOMJS_ORIENTATION',
+                'PHANTOMJS_MARGIN']:
             if getattr(self, attr, None) is None:
                 value = getattr(settings, attr, None)
                 if value is None:
@@ -121,11 +127,16 @@ class RequestToPDF(object):
         return response
 
     def request_to_pdf(self, request, basename,
-                       format=DEFAULT_SETTINGS['PHANTOMJS_FORMAT'],
-                       orientation=DEFAULT_SETTINGS['PHANTOMJS_ORIENTATION'],
+                       format=None,
+                       orientation=None,
+                       margin=None,
                        make_response=True):
         """Receive request, basename and return a PDF in an HttpResponse.
             If `make_response` is True return an HttpResponse otherwise file_src. """
+
+        format = format or self.PHANTOMJS_FORMAT
+        orientation = orientation or self.PHANTOMJS_ORIENTATION
+        margin = margin or self.PHANTOMJS_MARGIN
 
         file_src = self._set_source_file_name(basename=basename)
         try:
@@ -154,7 +165,8 @@ class RequestToPDF(object):
                 cookie_file,
                 domain,
                 format,
-                orientation
+                orientation,
+                json.dumps(margin),
             ], close_fds=True, stdout=PIPE, stderr=STDOUT)
             phandle.communicate()
 
@@ -166,8 +178,9 @@ class RequestToPDF(object):
 
 
 def render_to_pdf(request, basename,
-                  format=DEFAULT_SETTINGS['PHANTOMJS_FORMAT'],
-                  orientation=DEFAULT_SETTINGS['PHANTOMJS_ORIENTATION'],
+                  format=None,
+                  orientation=None,
+                  margin=None,
                   make_response=True):
     """Helper function for rendering a request to pdf.
     Arguments:
@@ -179,5 +192,5 @@ def render_to_pdf(request, basename,
     """
     request2pdf = RequestToPDF()
     response = request2pdf.request_to_pdf(request, basename, format=format,
-                                          orientation=orientation, make_response=make_response)
+                                          orientation=orientation, margin=margin, make_response=make_response)
     return response
