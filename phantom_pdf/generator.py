@@ -90,9 +90,9 @@ class RequestToPDF(object):
         ))
         with open(cookie_file, 'w+') as fh:
             cookie = ''.join((
-                request.COOKIES.get('csrftoken', 'nocsrftoken'),
+                request.COOKIES.get(settings.CSRF_COOKIE_NAME, 'nocsrftoken'),
                 ' ',
-                request.COOKIES.get('sessionid', 'nosessionid')
+                request.COOKIES.get(settings.SESSION_COOKIE_NAME, 'nosessionid')
             ))
             fh.write(cookie)
         return cookie_file
