@@ -33,15 +33,15 @@ Quick start
         	if request.GET.get("print", None) == "pdf":
             	basename = 'output'  # `.pdf` will be appended to this string.
 	            return render_to_pdf(request, basename)
-                # If you want to change default format and orientation for this view
-                # return render_to_pdf(request, basename, format='A3', orientation='portrait')
+                # If you want to change default format, orientation and margins for this view
+                # return render_to_pdf(request, basename, format='A3', orientation='portrait', margin={'top': '4.5cm'})
     	    else:
         	    return HttpResponse("Hello World!")
 
 Advanced Use
 ------------
 
-For more advanced use and control, you can set the following variables in your setting.
+For more advanced use and control, you can set the following variables in your settings.
 They are already set to sane defaults, so it's not necessary unless you are looking for
 more fine grained control.
 
@@ -49,6 +49,7 @@ more fine grained control.
     PHANTOMJS_PDF_DIR = Directory where you want to the PDF to be saved temporarily.
     PHANTOMJS_BIN = Path to PhantomsJS binary.
     PHANTOMJS_GENERATE_PDF = Path to generate_pdf.js file.
-    keep_pdf_files = Option to not delete the PDF file after rendering it.
-    PHANTOMJS_FORMAT = Page size to use
+    KEEP_PDF_FILES = Option to not delete the PDF file after rendering it.
+    PHANTOMJS_FORMAT = Page size to use.
     PHANTOMJS_ORIENTATION = How the page will be positioned when printing.
+    PHANTOMJS_MARGIN = The margins of the PDF.

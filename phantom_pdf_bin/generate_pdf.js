@@ -1,5 +1,6 @@
 var page, system, fs, info, csrftoken, sessionid, categories,
-    notification, data, address, output;
+    notification, data, address, output, cookie_file, domain,
+    format, orientation, margin;
 
 // Create a page object
 page = require('webpage').create();
@@ -17,8 +18,9 @@ address = system.args[1];
 output = system.args[2];
 cookie_file = system.args[3];
 domain = system.args[4];
-format = system.args[5]
+format = system.args[5];
 orientation = system.args[6];
+margin = system.args[7];
 
 info = fs.read(cookie_file).split(' ');
 csrftoken = info[0];
@@ -35,7 +37,8 @@ phantom.addCookie({'domain':domain, 'name':'sessionid',
 // Set the page size and orientation
 page.paperSize = {
     format: format,
-    orientation: orientation};
+    orientation: orientation,
+    margin: JSON.parse(margin)};
 
 // Now we have everything settled, let's render the page
 page.open(address, function (status) {
