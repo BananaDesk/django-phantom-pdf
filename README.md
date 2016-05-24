@@ -1,3 +1,5 @@
+# This package is deprecated and no longer maintained.
+
 Django Phantom PDF
 ==================
 
